@@ -30,16 +30,80 @@ async function run() {
     app.get('/gadgets', async (req, res) => {
       const page = parseInt(req?.query?.page)
       const limit = parseInt(req?.query?.limit)
+      const sortPrice = req?.query?.sortPrice
+      const sortDate = req?.query?.sortDate /// new, old
 
-      const fullGadgetsSets = await gadgets.find().toArray();
-      const allGadgets = await gadgets.find().skip((page - 1) * limit).limit(limit).toArray();
+      let sortOrder = {};
+
+      if (sortPrice === "low") {
+        sortOrder.price = 1;  // Ascending order
+      } else if (sortPrice === "high") {
+        sortOrder.price = -1; // Descending order
+      }
+
+      if (sortDate === "new") {
+        sortOrder.creationDate = -1;  // Newest first (descending order)
+      } else if (sortDate === "old") {
+        sortOrder.creationDate = 1;   // Oldest first (ascending order)
+      }
+
+      const allGadgets = await gadgets.find().sort(sortOrder).skip((page - 1) * limit).limit(limit).toArray();
       res.send({ allGadgets, page, limit });
     })
 
+    // app.get('/allGadgets', async (req, res) => {
+    //   const sortPrice = req?.query?.sortPrice
+    //   const sortDate = req?.query?.sortDate /// new, old
+    //   // console.log("sortPrice", sortPrice);
+    //   let fullGadgetsSets;
+    //   if (sortPrice === "low") {
+    //     fullGadgetsSets = await gadgets.find().sort({ "price": 1 }).toArray();
+    //   }
+    //   else if (sortPrice === "high") {
+    //     fullGadgetsSets = await gadgets.find().sort({ "price": -1 }).toArray();
+    //   }
+    //   // if (sortCreationDate === "newest") {
+    //   //   sortOrder.creationDate = -1;  // Newest first (descending order)
+    //   // } else if (sortCreationDate === "oldest") {
+    //   //   sortOrder.creationDate = 1;   // Oldest first (ascending order)
+    //   // }
+    //   else {
+    //     fullGadgetsSets = await gadgets.find().toArray();
+    //   }
+    //   res.send(fullGadgetsSets);
+    // })
+
     app.get('/allGadgets', async (req, res) => {
-      const fullGadgetsSets = await gadgets.find().toArray();
+      const sortPrice = req?.query?.sortPrice;
+      const sortDate = req?.query?.sortDate; // "new" or "old"
+
+      let sortOrder = {};
+
+      if (sortPrice === "low") {
+        sortOrder.price = 1;  // Ascending order
+      } else if (sortPrice === "high") {
+        sortOrder.price = -1; // Descending order
+      }
+
+      // Handle sorting by creation date
+      if (sortDate === "new") {
+        sortOrder.creationDate = -1;  // Newest first (descending order)
+      } else if (sortDate === "old") {
+        sortOrder.creationDate = 1;   // Oldest first (ascending order)
+      }
+
+      // If no sorting criteria is provided, set sortOrder to an empty object (no sorting)
+      // if (!sortPrice && !sortDate) {
+      //   sortOrder = {};
+      // }
+
+      // try {
+      const fullGadgetsSets = await gadgets.find().sort(sortOrder).toArray();
       res.send(fullGadgetsSets);
-    })
+      // } catch (error) {
+      //   res.status(500).send({ error: 'An error occurred while fetching the gadgets.' });
+      // }
+    });
 
 
     // Send a ping to confirm a successful connection
