@@ -31,87 +31,73 @@ async function run() {
       const page = parseInt(req?.query?.page)
       const limit = parseInt(req?.query?.limit)
       const sortPrice = req?.query?.sortPrice
-      const sortDate = req?.query?.sortDate /// new, old
+      const sortDate = req?.query?.sortDate
 
       let sortOrder = {};
 
       if (sortPrice === "low") {
-        sortOrder.price = 1;  // Ascending order
+        sortOrder.price = 1;
       } else if (sortPrice === "high") {
-        sortOrder.price = -1; // Descending order
+        sortOrder.price = -1;
       }
 
       if (sortDate === "new") {
-        sortOrder.creationDate = -1;  // Newest first (descending order)
+        sortOrder.creationDate = -1;
       } else if (sortDate === "old") {
-        sortOrder.creationDate = 1;   // Oldest first (ascending order)
+        sortOrder.creationDate = 1;
       }
 
       const allGadgets = await gadgets.find().sort(sortOrder).skip((page - 1) * limit).limit(limit).toArray();
       res.send({ allGadgets, page, limit });
     })
 
-    // app.get('/allGadgets', async (req, res) => {
-    //   const sortPrice = req?.query?.sortPrice
-    //   const sortDate = req?.query?.sortDate /// new, old
-    //   // console.log("sortPrice", sortPrice);
-    //   let fullGadgetsSets;
-    //   if (sortPrice === "low") {
-    //     fullGadgetsSets = await gadgets.find().sort({ "price": 1 }).toArray();
-    //   }
-    //   else if (sortPrice === "high") {
-    //     fullGadgetsSets = await gadgets.find().sort({ "price": -1 }).toArray();
-    //   }
-    //   // if (sortCreationDate === "newest") {
-    //   //   sortOrder.creationDate = -1;  // Newest first (descending order)
-    //   // } else if (sortCreationDate === "oldest") {
-    //   //   sortOrder.creationDate = 1;   // Oldest first (ascending order)
-    //   // }
-    //   else {
-    //     fullGadgetsSets = await gadgets.find().toArray();
-    //   }
-    //   res.send(fullGadgetsSets);
-    // })
-
     app.get('/allGadgets', async (req, res) => {
       const sortPrice = req?.query?.sortPrice;
-      const sortDate = req?.query?.sortDate; // "new" or "old"
+      const sortDate = req?.query?.sortDate;
 
       let sortOrder = {};
 
       if (sortPrice === "low") {
-        sortOrder.price = 1;  // Ascending order
+        sortOrder.price = 1;
       } else if (sortPrice === "high") {
-        sortOrder.price = -1; // Descending order
+        sortOrder.price = -1;
       }
 
-      // Handle sorting by creation date
       if (sortDate === "new") {
-        sortOrder.creationDate = -1;  // Newest first (descending order)
+        sortOrder.creationDate = -1;
       } else if (sortDate === "old") {
-        sortOrder.creationDate = 1;   // Oldest first (ascending order)
+        sortOrder.creationDate = 1;
       }
 
-      // If no sorting criteria is provided, set sortOrder to an empty object (no sorting)
-      // if (!sortPrice && !sortDate) {
-      //   sortOrder = {};
-      // }
-
-      // try {
       const fullGadgetsSets = await gadgets.find().sort(sortOrder).toArray();
       res.send(fullGadgetsSets);
-      // } catch (error) {
-      //   res.status(500).send({ error: 'An error occurred while fetching the gadgets.' });
-      // }
+
     });
+
+    app.get('/category', async (req, res) => {
+      try {
+        const categories = await gadgets.aggregate([
+          { $group: { _id: "$category" } }
+        ]).toArray();
+
+        // Transform the result to just an array of categories
+        const categoryList = categories.map(cat => cat._id);
+
+        res.send(categoryList);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        res.status(500).send({ error: 'An error occurred while fetching the categories.' });
+      }
+    });
+
+
 
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
+
   }
 }
 run().catch(console.dir);
