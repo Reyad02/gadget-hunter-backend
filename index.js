@@ -42,8 +42,8 @@ async function run() {
       let query = {};
 
       if (search) {
-        query.name = { $regex: search, $options: "i" };  /
-    }
+        query.name = { $regex: search, $options: "i" };
+      }
 
       if (filterCategory !== "none") {
         query.category = filterCategory
@@ -71,7 +71,7 @@ async function run() {
       } else if (sortDate === "old") {
         sortOrder.creationDate = 1;
       }
-
+      console.log(query)
       const totalCount = await gadgets.countDocuments(query);
       const totPages = Math.ceil(totalCount / limit);
 
