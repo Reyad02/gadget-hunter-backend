@@ -74,14 +74,8 @@ async function run() {
     app.get('/allGadgets', async (req, res) => {
       const sortPrice = req?.query?.sortPrice;
       const sortDate = req?.query?.sortDate;
-      // const filterCategory = req?.query?.filterCategory;
 
       let sortOrder = {};
-      // let query = {};
-
-      // if (filterCategory !== "none") {
-      //   query.category = filterCategory
-      // }
 
       if (sortPrice === "low") {
         sortOrder.price = 1;
@@ -119,7 +113,8 @@ async function run() {
     app.get('/brand', async (req, res) => {
       try {
         const brands = await gadgets.aggregate([
-          { $group: { _id: "$brandName" } }
+          { $group: { _id: "$brandName" } },
+          { $sort: { _id: 1 } }
         ]).toArray();
 
         // Transform the result to just an array of categories
