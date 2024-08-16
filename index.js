@@ -36,9 +36,14 @@ async function run() {
       const filterBrand = req?.query?.filterBrand;
       const minPrice = req?.query?.minPrice ? parseFloat(req?.query?.minPrice) : null;
       const maxPrice = req?.query?.maxPrice ? parseFloat(req?.query?.maxPrice) : null;
+      const search = req?.query?.search;
 
       let sortOrder = {};
       let query = {};
+
+      if (search) {
+        query.name = { $regex: search, $options: "i" };  /
+    }
 
       if (filterCategory !== "none") {
         query.category = filterCategory
@@ -70,33 +75,9 @@ async function run() {
       const totalCount = await gadgets.countDocuments(query);
       const totPages = Math.ceil(totalCount / limit);
 
-
       const allGadgets = await gadgets.find(query).sort(sortOrder).skip((page - 1) * limit).limit(limit).toArray();
       res.send({ allGadgets, page, limit, totPages });
     })
-
-    app.get('/allGadgets', async (req, res) => {
-      const sortPrice = req?.query?.sortPrice;
-      const sortDate = req?.query?.sortDate;
-
-      let sortOrder = {};
-
-      if (sortPrice === "low") {
-        sortOrder.price = 1;
-      } else if (sortPrice === "high") {
-        sortOrder.price = -1;
-      }
-
-      if (sortDate === "new") {
-        sortOrder.creationDate = -1;
-      } else if (sortDate === "old") {
-        sortOrder.creationDate = 1;
-      }
-
-      const fullGadgetsSets = await gadgets.find().sort(sortOrder).toArray();
-      res.send(fullGadgetsSets);
-
-    });
 
     app.get('/category', async (req, res) => {
       try {
@@ -105,7 +86,6 @@ async function run() {
           { $sort: { _id: 1 } }
         ]).toArray();
 
-        // Transform the result to just an array of categories
         const categoryList = categories.map(cat => cat._id);
 
         res.send(categoryList);
@@ -122,7 +102,6 @@ async function run() {
           { $sort: { _id: 1 } }
         ]).toArray();
 
-        // Transform the result to just an array of categories
         const brandList = brands.map(brand => brand._id);
 
         res.send(brandList);
