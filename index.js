@@ -34,8 +34,8 @@ async function run() {
       const sortDate = req?.query?.sortDate
       const filterCategory = req?.query?.filterCategory;
       const filterBrand = req?.query?.filterBrand;
-      console.log("filterCategory",filterCategory);
-      console.log("filterBrand",filterBrand);
+      const minPrice = req?.query?.minPrice ? parseFloat(req?.query?.minPrice) : null;
+      const maxPrice = req?.query?.maxPrice ? parseFloat(req?.query?.maxPrice) : null;
 
       let sortOrder = {};
       let query = {};
@@ -45,6 +45,14 @@ async function run() {
       }
       if (filterBrand !== "none") {
         query.brandName = filterBrand
+      }
+
+      if (minPrice !== null && maxPrice !== null) {
+        query.price = { $gte: minPrice, $lte: maxPrice };
+      } else if (minPrice !== null) {
+        query.price = { $gte: minPrice };
+      } else if (maxPrice !== null) {
+        query.price = { $lte: maxPrice };
       }
 
       if (sortPrice === "low") {
@@ -66,14 +74,14 @@ async function run() {
     app.get('/allGadgets', async (req, res) => {
       const sortPrice = req?.query?.sortPrice;
       const sortDate = req?.query?.sortDate;
-      const filterCategory = req?.query?.filterCategory;
+      // const filterCategory = req?.query?.filterCategory;
 
       let sortOrder = {};
-      let query = {};
+      // let query = {};
 
-      if (filterCategory !== "none") {
-        query.category = filterCategory
-      }
+      // if (filterCategory !== "none") {
+      //   query.category = filterCategory
+      // }
 
       if (sortPrice === "low") {
         sortOrder.price = 1;
@@ -87,7 +95,7 @@ async function run() {
         sortOrder.creationDate = 1;
       }
 
-      const fullGadgetsSets = await gadgets.find(query).sort(sortOrder).toArray();
+      const fullGadgetsSets = await gadgets.find().sort(sortOrder).toArray();
       res.send(fullGadgetsSets);
 
     });
