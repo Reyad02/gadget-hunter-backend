@@ -32,8 +32,20 @@ async function run() {
       const limit = parseInt(req?.query?.limit)
       const sortPrice = req?.query?.sortPrice
       const sortDate = req?.query?.sortDate
+      const filterCategory = req?.query?.filterCategory;
+      const filterBrand = req?.query?.filterBrand;
+      console.log("filterCategory",filterCategory);
+      console.log("filterBrand",filterBrand);
 
       let sortOrder = {};
+      let query = {};
+
+      if (filterCategory !== "none") {
+        query.category = filterCategory
+      }
+      if (filterBrand !== "none") {
+        query.brandName = filterBrand
+      }
 
       if (sortPrice === "low") {
         sortOrder.price = 1;
@@ -47,15 +59,21 @@ async function run() {
         sortOrder.creationDate = 1;
       }
 
-      const allGadgets = await gadgets.find().sort(sortOrder).skip((page - 1) * limit).limit(limit).toArray();
+      const allGadgets = await gadgets.find(query).sort(sortOrder).skip((page - 1) * limit).limit(limit).toArray();
       res.send({ allGadgets, page, limit });
     })
 
     app.get('/allGadgets', async (req, res) => {
       const sortPrice = req?.query?.sortPrice;
       const sortDate = req?.query?.sortDate;
+      const filterCategory = req?.query?.filterCategory;
 
       let sortOrder = {};
+      let query = {};
+
+      if (filterCategory !== "none") {
+        query.category = filterCategory
+      }
 
       if (sortPrice === "low") {
         sortOrder.price = 1;
@@ -69,7 +87,7 @@ async function run() {
         sortOrder.creationDate = 1;
       }
 
-      const fullGadgetsSets = await gadgets.find().sort(sortOrder).toArray();
+      const fullGadgetsSets = await gadgets.find(query).sort(sortOrder).toArray();
       res.send(fullGadgetsSets);
 
     });
@@ -84,6 +102,22 @@ async function run() {
         const categoryList = categories.map(cat => cat._id);
 
         res.send(categoryList);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        res.status(500).send({ error: 'An error occurred while fetching the categories.' });
+      }
+    });
+
+    app.get('/brand', async (req, res) => {
+      try {
+        const brands = await gadgets.aggregate([
+          { $group: { _id: "$brandName" } }
+        ]).toArray();
+
+        // Transform the result to just an array of categories
+        const brandList = brands.map(brand => brand._id);
+
+        res.send(brandList);
       } catch (error) {
         console.error('Error fetching categories:', error);
         res.status(500).send({ error: 'An error occurred while fetching the categories.' });
