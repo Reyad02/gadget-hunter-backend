@@ -97,7 +97,8 @@ async function run() {
     app.get('/category', async (req, res) => {
       try {
         const categories = await gadgets.aggregate([
-          { $group: { _id: "$category" } }
+          { $group: { _id: "$category" } },
+          { $sort: { _id: 1 } }
         ]).toArray();
 
         // Transform the result to just an array of categories
