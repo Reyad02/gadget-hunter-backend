@@ -67,8 +67,12 @@ async function run() {
         sortOrder.creationDate = 1;
       }
 
+      const totalCount = await gadgets.countDocuments(query);
+      const totPages = Math.ceil(totalCount / limit);
+
+
       const allGadgets = await gadgets.find(query).sort(sortOrder).skip((page - 1) * limit).limit(limit).toArray();
-      res.send({ allGadgets, page, limit });
+      res.send({ allGadgets, page, limit, totPages });
     })
 
     app.get('/allGadgets', async (req, res) => {
